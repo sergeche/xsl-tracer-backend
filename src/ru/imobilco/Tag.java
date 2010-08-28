@@ -4,43 +4,60 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tag {
-	private String tag;
-	private String name = "";
+	private String type;
+	private String name;
 	private List<Tag> children = new ArrayList<Tag>();
-	private List<String> attributes = new ArrayList<String>();
+	
 	private Tag parent;
-	private int meta_line = 0;
-	private int meta_column = -1;
-	private String meta_xpath = null;
-	private String meta_module = null;
+	private Tag previousSibling;
+	private Tag nextSibling;
+	
+	private ResourceReference sourceRef;
+	private ResourceReference contextRef;
+	private ResourceReference templateRef;
+	
 	private String xpath = null;
 	
-	private String source_node;
-	private int source_line = 0;
-	private String source_file;
-	
-	public Tag(String tag_name) {
-		this.tag = tag_name;
+	public Tag(String name) {
+		this.name = name;
  	}
-	
-	public Tag(String tag_name, Tag parent) {
-		this.tag = tag_name;
-		this.parent = parent;
-	}
 	
 	public void setName(String name) {
 		this.name = name;
 	}
 	
-	/**
-	 * Add node's attribute
-	 * @param name Attribute name
-	 * @param value Attribute value
-	 */
-	public void addAttribute(String name, String value) {
-		attributes.add("\"" + name + "\":\"" + value + "\"");
+	public String getName() {
+		return name;
 	}
 	
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getType() {
+		return type;
+	}
+	
+	public void setXpath(String xpath) {
+		this.xpath = xpath;
+	}
+
+	public String getXpath() {
+		return xpath;
+	}
+	
+	public Tag getPreviousSibling() {
+		return previousSibling;
+	}
+	
+	public Tag getNextSibling() {
+		return nextSibling;
+	}
+	
+	public List<Tag> getChildren() {
+		return children;
+	}
+
 	/**
 	 * Returns tag's parent
 	 * @return Tag
@@ -54,117 +71,54 @@ public class Tag {
 	 * @param child
 	 */
 	public void addChild(Tag child) {
+		child.previousSibling = null;
+		child.nextSibling = null;
+		
+		if (children.size() > 0) {
+			Tag lastChild = children.get(children.size() - 1);
+			child.previousSibling = lastChild;
+			lastChild.nextSibling = child;
+		}
+		
 		children.add(child);
+		child.parent = this;
 	}
 	
-	/**
-	 * Add meta info about tag
-	 * @param line Tag's line number in source
-	 * @param col Tag's column number in source
-	 * @param module Module (file) name where tag is
-	 */
-	public void addMetaInfo(int line, int col, String module) {
-		meta_line = line;
-		meta_column = col;
-		meta_module = module;
+	public void setContextReference(String fileUri, String xpath, int lineNum) {
+		contextRef = new ResourceReference("xml", fileUri, xpath, lineNum);
 	}
 	
-	/**
-	 * Add meta info about tag
-	 * @param line Tag's line number in source
-	 * @param xpath Tag Xpath
-	 * @param module Module (file) name where tag is
-	 */
-	public void addMetaInfo(int line, String xpath, String module) {
-		meta_line = line;
-		meta_xpath = xpath;
-		meta_module = module;
+	public ResourceReference getContextReference() {
+		return contextRef;
 	}
 	
-	public void addSource(String node, int line, String file) {
-		source_node = node;
-		source_line = line;
-		source_file = file;
+	public ResourceReference getSourceReference() {
+		return sourceRef;
 	}
 	
-	/**
-	 * Output meta info as JSON string
-	 * @return JSON string
-	 */
-	protected String metaToString() {
-		if (meta_module != null) {
-			String result = "\"meta\":{";
-			result += "\"l\":" + meta_line + ",";
-			if (meta_column >= 0) {
-				result += "\"c\":" + meta_column + ",";
-			}
-			
-			if (meta_xpath != null) {
-				result += "\"x\":\"" + meta_xpath + "\",";
-			}
-			
-			result += "\"m\":\"" + meta_module + "\"}";
-			
-			return result;
-		}
-		
-		return null;
-	}
-	
-	private String attributesToString() {
-		if (attributes.size() > 0) {
-			StringBuilder result = new StringBuilder();
-			result.append("\"attrs\":{");
-			
-			for (int i = 0; i < attributes.size(); i++) {
-				if (i != 0) {
-					result.append(",");
-				}
-				result.append(attributes.get(i)); 
-			}
-			
-			result.append("}");
-			
-			return result.toString();
-		}
-		
-		return null;
-	}
-	
-	private String sourceToString() {
-		if (source_node != null) {
-			return "\"src\":{" +
-					"\"x\":\"" + source_node + "\"," +
-					"\"l\":" + source_line + "," +
-					"\"f\":\"" + source_file + "\"" +
-					"}";
-		} else {
-			return null;
-		}
+	public ResourceReference getTemplateReference() {
+		return templateRef;
 	}
 	
 	public String toString() {
-		String json_tag = "{"
-				+ "\"tag\":\"" + tag + "\","
-				+ "\"name\":\"" + name + "\",";
-		
-		String source = sourceToString();
-		String attrs = attributesToString();
-		String meta = metaToString();
-		
-		if (attrs != null) {
-			json_tag += attrs + ",";
-		}
+		String result = "{"
+			+ "\"name\":\"" + getName() + "\","
+			+ "\"type\":\"" + getType() + "\",";
 		
 		if (xpath != null) {
-			json_tag += "\"lx\":\"" + xpath + "\",";
+			result += "\"xpath\":\"" + getXpath() + "\",";
 		}
 		
-		if (meta != null) {
-			json_tag += meta + ",";
+		if (contextRef != null) {
+			result += "\"ctx\":\"" + getContextReference() + "\",";
 		}
-		if (source != null) {
-			json_tag += source + ",";
+		
+		if (sourceRef != null) {
+			result += "\"src\":\"" + getSourceReference() + "\",";
+		}
+		
+		if (templateRef != null) {
+			result += "\"tmpl\":\"" + getTemplateReference() + "\",";
 		}
 		
 		StringBuilder builder = new StringBuilder();
@@ -173,17 +127,33 @@ public class Tag {
 			if (i != 0) {
 				builder.append(',');
 			}
-			builder.append("" + children.get(i).toString()); 
+			builder.append(children.get(i).toString()); 
 		}
 		builder.append("]");
-		return json_tag + builder.toString() + "}";
+		return result + builder.toString() + "}";
 	}
 
-	public void setXpath(String xpath) {
-		this.xpath = xpath;
+	public static String getPath(Tag tag) {
+		String pre;
+		if (tag.getParent() == null)
+			return "/";
+		else {
+			pre = getPath(tag.getParent());
+			return (pre.equals("/") ? "" : pre) + 
+            	"/" + tag.getName() + "[" + getNumberSimple(tag) + "]";
+		}
 	}
-
-	public String getXpath() {
-		return xpath;
+	
+	public static int getNumberSimple(Tag tag) {
+		String curName = tag.getName();
+		int pos = 1;
+		Tag prev = tag.getPreviousSibling();
+		while (prev != null) {
+			if (prev.getName() == curName)
+				pos++;
+			prev = prev.getPreviousSibling();
+		}
+		
+		return pos;
 	}
 }
