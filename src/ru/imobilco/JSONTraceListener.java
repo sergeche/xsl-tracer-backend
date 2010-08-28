@@ -1,71 +1,38 @@
 package ru.imobilco;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintStream;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import javax.xml.transform.TransformerConfigurationException;
-
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import com.icl.saxon.Bindery;
-import com.icl.saxon.Binding;
 import com.icl.saxon.Context;
 import com.icl.saxon.NodeHandler;
 import com.icl.saxon.expr.Expression;
-import com.icl.saxon.expr.FragmentValue;
-import com.icl.saxon.expr.NodeSetExpression;
-import com.icl.saxon.expr.NodeSetValue;
-import com.icl.saxon.expr.TextFragmentValue;
-import com.icl.saxon.expr.Value;
-import com.icl.saxon.expr.VariableReference;
-import com.icl.saxon.expr.XPathException;
-import com.icl.saxon.om.AbstractNode;
-import com.icl.saxon.om.Axis;
-import com.icl.saxon.om.NamePool;
 import com.icl.saxon.om.Navigator;
-import com.icl.saxon.om.NodeEnumeration;
 import com.icl.saxon.om.NodeInfo;
-import com.icl.saxon.output.Emitter;
-import com.icl.saxon.output.GeneralOutputter;
-import com.icl.saxon.output.NamespaceEmitter;
-import com.icl.saxon.output.Outputter;
-import com.icl.saxon.output.StringOutputter;
-import com.icl.saxon.output.XMLEmitter;
-import com.icl.saxon.pattern.NameTest;
-import com.icl.saxon.pattern.NodeTest;
-import com.icl.saxon.pattern.NodeTypeTest;
 import com.icl.saxon.style.LiteralResultElement;
 import com.icl.saxon.style.StyleElement;
 import com.icl.saxon.style.XSLCopyOf;
 import com.icl.saxon.style.XSLElement;
+import com.icl.saxon.style.XSLTemplate;
 import com.icl.saxon.style.XSLVariable;
 import com.icl.saxon.trace.TraceListener;
 
 /**
- * This is the standard trace listener used when the -T option is specified on the command line.
- * There are two variants, represented by subclasses: one for XSLT, and one for XQuery. The two variants
- * differ in that they present the trace output in terms of constructs used in the relevant host language.
+ * JSON trace listener
+ * @author Sergey Chikuyonok (serge.che@gmail.com)
+ * @link http://chikuyonok.ru
+ *
  */
-
 public class JSONTraceListener implements TraceListener {
     private PrintStream out = System.err;
     private NodeInfo tmp_source;
     private List<String> allowedXslTags = new ArrayList<String>();
-    
-    private NamespaceEmitter emitter;
-    private JSONEmitter jsonEmitter;
-    private StringWriter buf;
+    private XSLCopyOfPrecessor coProcessor;
+    private boolean skipTag = false;
     
     protected RootTag root;
     protected Tag cur_tag;
@@ -77,14 +44,10 @@ public class JSONTraceListener implements TraceListener {
 		allowedXslTags.add("xsl:apply-templates");
 		allowedXslTags.add("xsl:apply-imports");
 		allowedXslTags.add("xsl:element");
+		allowedXslTags.add("xsl:copy-of");
+		allowedXslTags.add("xsl:copy");
 		
-		jsonEmitter = new JSONEmitter();
-    	buf = new StringWriter();
-    	jsonEmitter.setWriter(buf);
-    	
-    	emitter = new NamespaceEmitter();
-    	emitter.setUnderlyingEmitter(jsonEmitter);
-    	emitter.setNamePool(NamePool.getDefaultNamePool());
+		coProcessor = new XSLCopyOfPrecessor();
 	}
 	
 	/**
@@ -120,24 +83,35 @@ public class JSONTraceListener implements TraceListener {
      * Called when an element of the stylesheet gets processed
      */
     public void enter(NodeInfo element, Context context) {
-    	if (element.getNodeType() == NodeInfo.ELEMENT && allowedElement(element)) {
-    		String type = this.getNodeType(element);
+    	if (element instanceof XSLVariable)
+    		skipTag = true;
+    	
+    	if (skipTag)
+    		return;
+    	
+    	if (allowedElement(element)) {
+    		Tag tag = new Tag(makeName(element, context));
+    		tag.setType(getNodeType(element));
     		
-    		Tag json_tag = new Tag(makeName(element, context));
-    		json_tag.setType(type);
+    		if (tag.getType() == "LRE")
+    			tag.setXpath(getLREPath(element, context, null));
+    		else
+    			tag.setXpath(Navigator.getPath(element));
     		
-    		if (json_tag.getType() == "LRE")
-    			json_tag.setXpath(getLREPath(element, context, null));
+    		if (element instanceof XSLTemplate)
+    			tag.setTemplateReference(element.getSystemId(), Navigator.getPath(element), element.getLineNumber());
     		
-//    		json_tag.addMetaInfo(element.getLineNumber(), Navigator.getPath(element), root.getExternal(element.getSystemId(), "xsl"));
+    		String collectionName = (element instanceof StyleElement) ? "xsl" : "xml";
+    		tag.setSourceReference(collectionName, element.getSystemId(), 
+    				Navigator.getPath(element), element.getLineNumber());
             
             if (tmp_source != null) {
-            	json_tag.setContextReference(tmp_source.getSystemId(), Navigator.getPath(tmp_source), tmp_source.getLineNumber());
+            	tag.setContextReference(tmp_source.getSystemId(), Navigator.getPath(tmp_source), tmp_source.getLineNumber());
             	tmp_source = null;
             }
             
-            cur_tag.addChild(json_tag);
-            cur_tag = json_tag;
+            cur_tag.addChild(tag);
+            cur_tag = tag;
     	}
     }
     
@@ -146,20 +120,21 @@ public class JSONTraceListener implements TraceListener {
      */
 
     public void leave(NodeInfo element, Context context) {
-        if (element.getNodeType() == NodeInfo.ELEMENT && allowedElement(element)) {
-        	if (element instanceof XSLCopyOf)
-        		cur_tag.setXpath(processCopyOf((XSLCopyOf) element, context));
-        	
-        	cur_tag = cur_tag.getParent();
-        	
-        }
+    	if (element instanceof XSLVariable)
+    		skipTag = false;
+    	else if (!skipTag && allowedElement(element)) {
+			if (element instanceof XSLCopyOf)
+				coProcessor.process((XSLCopyOf) element, context, cur_tag);
+			
+			cur_tag = cur_tag.getParent();
+    	}
     }
     
 
     private boolean allowedElement(NodeInfo element) {
-    	return true;
-//    	String name = tag(element);
-//		return name == "L" || xslTags.contains(name);
+    	return element.getNodeType() == NodeInfo.ELEMENT && 
+    		(getNodeType(element) == "LRE" || 
+    			allowedXslTags.contains(element.getDisplayName()));
 	}
     
     /**
@@ -228,7 +203,7 @@ public class JSONTraceListener implements TraceListener {
          NodeInfo iterNode = node;
          do {
         	 if (iterNode.getNodeType() == NodeInfo.ELEMENT) {
-        		 if (iterNode instanceof LiteralResultElement || iterNode instanceof XSLElement) {
+        		 if (getNodeType(iterNode) == "LRE") {
         			 xpath = "/" + makeName(iterNode, context) + "[" + getLRENumber(iterNode, context) + "]" + xpath;
         		 }
         	 }
@@ -262,60 +237,6 @@ public class JSONTraceListener implements TraceListener {
     	  return pos;
       }
       
-      private String processCopyOf(XSLCopyOf node, Context context) {
-    	  String selectAttr = node.getAttribute("select");
-    	  String result = "";
-    	  if (selectAttr != null) {
-    		  try {
-				Expression select = node.makeExpression(selectAttr);
-				
-				if (select instanceof NodeSetExpression) {
-					NodeEnumeration enm = select.enumerate(context, true);
-			    	while (enm.hasMoreElements()) {
-			    		NodeInfo n = enm.nextElement();
-			    		result += n.getDisplayName() + ";";
-//			    		n.copy(out);
-			    	}
-		    		return result + " nse";
-		    	} else {
-			        Value value = select.evaluate(context);
-			        if (value instanceof FragmentValue) {
-			        	String prefix = "";
-			        	
-			        	if (select instanceof VariableReference) {
-			        		Bindery bindery = context.getBindery();
-			        		Value val = bindery.getValue(((VariableReference)select).getBinding());
-			        		
-			        		Binding binding = ((VariableReference) select).getBinding();
-			        		if (binding instanceof XSLVariable) {
-			        			prefix = Navigator.getPath((NodeInfo) binding);
-			        		} else {
-			        			prefix = ((VariableReference) select).getBinding().toString();
-			        		}
-			        		
-			        	}
-			        	
-			        	buf.getBuffer().setLength(0);
-			        	jsonEmitter.setXpathPrefix(prefix);
-			        	
-			            emitter.startDocument();
-			            ((FragmentValue)value).replay(emitter);
-			            emitter.endDocument();
-			            jsonEmitter.copyTags(cur_tag);
-			            
-			        	result += prefix +  ";" + escapeHTML(buf.toString());
-			        }
-			    }
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    		  
-    	  }
-    	  
-    	  return result;
-      }
-      
       public static String escapeHTML(String text) {
     	  final StringBuilder result = new StringBuilder();
     	  final StringCharacterIterator iterator = new StringCharacterIterator(text);
@@ -335,21 +256,3 @@ public class JSONTraceListener implements TraceListener {
     	  return result.toString();
       }
 }
-
-//
-// The contents of this file are subject to the Mozilla Public License Version 1.0 (the "License");
-// you may not use this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.mozilla.org/MPL/
-//
-// Software distributed under the License is distributed on an "AS IS" basis,
-// WITHOUT WARRANTY OF ANY KIND, either express or implied.
-// See the License for the specific language governing rights and limitations under the License.
-//
-// The Original Code is: all this file.
-//
-// The Initial Developer of the Original Code is Michael H. Kay
-//
-// Portions created by (your name) are Copyright (C) (your legal entity). All Rights Reserved.
-//
-// Contributor(s): none
-//

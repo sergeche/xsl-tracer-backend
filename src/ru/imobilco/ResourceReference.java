@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * @link http://chikuyonok.ru
  */
 public class ResourceReference {
-	private static Properties collections;
+	private static Properties collections = new Properties();
 	
 	private String collectionName;
 	private int ix;
@@ -58,11 +58,11 @@ public class ResourceReference {
 	public String toString() {
 		String result = "{" +
 		"\"v\": \"" + collectionName + "\"," +
-		"\"i\": " + ix + ",";
+		"\"i\": " + getIndex() + ",";
 		if (lineNum > -1)
-			result += "\"l\": " + lineNum + ",";
+			result += "\"l\": " + getLineNum() + ",";
 		
-		result += "\"xpath\":" + xpath + "\"}";
+		result += "\"xpath\":\"" + getXpath() + "\"}";
 		
 		return result;
 	}

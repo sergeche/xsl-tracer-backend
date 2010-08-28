@@ -4,10 +4,14 @@ import javax.xml.transform.TransformerException;
 
 import org.xml.sax.Attributes;
 
+import com.icl.saxon.om.Navigator;
+import com.icl.saxon.om.NodeInfo;
 import com.icl.saxon.output.Emitter;
+import com.icl.saxon.style.StyleElement;
 
 public class JSONEmitter extends Emitter {
 	private String xpathPrefix;
+	private NodeInfo sourceElement;
 	private Tag root;
 	private Tag curTag;
 	
@@ -40,12 +44,19 @@ public class JSONEmitter extends Emitter {
     		lastDisplayName = displayName;
 	    }
 		
-		Tag tag = new Tag(displayName, curTag);
+		Tag tag = new Tag(displayName);
 		tag.setName(displayName);
 		curTag.addChild(tag);
-        curTag = tag;
+		
+		String collectionName = (sourceElement instanceof StyleElement) ? "xsl" : "xml";
+		tag.setXpath(Tag.getPath(tag));
+		tag.setType("LRE");
+		tag.setSourceReference(collectionName, sourceElement.getSystemId(), 
+				Navigator.getPath(sourceElement) + tag.getXpath(), 
+				sourceElement.getLineNumber());
+		
         
-        curTag.setXpath(xpathPrefix + Tag.getPath(curTag));
+        curTag = tag;
 	}
 
 	@Override
@@ -75,10 +86,31 @@ public class JSONEmitter extends Emitter {
 	public String getXpathPrefix() {
 		return xpathPrefix;
 	}
-	
+
+	public void setSourceElement(NodeInfo sourceElement) {
+		this.sourceElement = sourceElement;
+	}
+
+	public NodeInfo getSourceElement() {
+		return sourceElement;
+	}
+
 	public void copyTags(Tag parentTag) {
+		// find nearest LRE ancestor and use its xpath as prefix
+		String prefix = "";
+		Tag parent = parentTag;
+		do {
+			if (parent.getType() == "LRE") {
+				prefix = parent.getXpath();
+				break;
+			}
+			parent = parent.getParent();
+		} while (parent != null);
+		
+		
 		for (Tag child : root.getChildren()) {
 			parentTag.addChild(child);
+			child.setXpath(prefix + child.getXpath());
 		}
 	}
 

@@ -92,12 +92,38 @@ public class Tag {
 		return contextRef;
 	}
 	
+	public void setSourceReference(String collectionName, String fileUri, String xpath, int lineNum) {
+		sourceRef = new ResourceReference(collectionName, fileUri, xpath, lineNum);
+	}
+	
 	public ResourceReference getSourceReference() {
 		return sourceRef;
 	}
 	
+	public void setTemplateReference(String fileUri, String xpath, int lineNum) {
+		templateRef = new ResourceReference("xsl", fileUri, xpath, lineNum);
+	}
+	
 	public ResourceReference getTemplateReference() {
 		return templateRef;
+	}
+	
+	protected String collectionsToString() {
+		String result = "";
+		
+		if (contextRef != null) {
+			result += "\"ctx\":" + getContextReference() + ",";
+		}
+		
+		if (sourceRef != null) {
+			result += "\"src\":" + getSourceReference() + ",";
+		}
+		
+		if (templateRef != null) {
+			result += "\"tmpl\":" + getTemplateReference() + ",";
+		}
+		
+		return result;
 	}
 	
 	public String toString() {
@@ -109,17 +135,7 @@ public class Tag {
 			result += "\"xpath\":\"" + getXpath() + "\",";
 		}
 		
-		if (contextRef != null) {
-			result += "\"ctx\":\"" + getContextReference() + "\",";
-		}
-		
-		if (sourceRef != null) {
-			result += "\"src\":\"" + getSourceReference() + "\",";
-		}
-		
-		if (templateRef != null) {
-			result += "\"tmpl\":\"" + getTemplateReference() + "\",";
-		}
+		result += collectionsToString();
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("\"children\":[");

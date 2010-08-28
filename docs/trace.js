@@ -29,7 +29,8 @@ var tag = {
 	type: "LRE",
 	
 	/**
-	 * Tag XPath in <em>result document</em>
+	 * Tag XPath in <em>result document</em> (for LRE elements) or in
+	 * XSL stylesheet (for XSL elements)
 	 */
 	xpath: "/html[1]/body[1]/div[2]",
 	
