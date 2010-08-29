@@ -14,6 +14,7 @@ import com.icl.saxon.expr.VariableReference;
 import com.icl.saxon.om.Axis;
 import com.icl.saxon.om.AxisEnumeration;
 import com.icl.saxon.om.NamePool;
+import com.icl.saxon.om.Navigator;
 import com.icl.saxon.om.NodeEnumeration;
 import com.icl.saxon.om.NodeInfo;
 import com.icl.saxon.output.NamespaceEmitter;
@@ -111,7 +112,7 @@ public class XSLCopyOfPrecessor {
     	
 		child.setType(JSONTraceListener.TYPE_LRE);
 		child.setXpath(Tag.getPath(child));
-		child.setContextReference(info.getSystemId(), child.getXpath(), info.getLineNumber());
+		child.setContextReference(info.getSystemId(), Navigator.getPath(info), info.getLineNumber());
 		
 		AxisEnumeration children =
             info.getEnumeration(Axis.CHILD, new NodeTypeTest(NodeInfo.ELEMENT));
