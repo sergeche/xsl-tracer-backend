@@ -14,9 +14,8 @@ public class Tag {
 	
 	private ResourceReference sourceRef;
 	private ResourceReference contextRef;
-	private ResourceReference templateRef;
 	
-	private String xpath = null;
+	private String xpath = "";
 	
 	public Tag(String name) {
 		this.name = name;
@@ -100,14 +99,6 @@ public class Tag {
 		return sourceRef;
 	}
 	
-	public void setTemplateReference(String fileUri, String xpath, int lineNum) {
-		templateRef = new ResourceReference("xsl", fileUri, xpath, lineNum);
-	}
-	
-	public ResourceReference getTemplateReference() {
-		return templateRef;
-	}
-	
 	protected String collectionsToString() {
 		String result = "";
 		
@@ -119,10 +110,6 @@ public class Tag {
 			result += "\"src\":" + getSourceReference() + ",";
 		}
 		
-		if (templateRef != null) {
-			result += "\"tmpl\":" + getTemplateReference() + ",";
-		}
-		
 		return result;
 	}
 	
@@ -131,7 +118,7 @@ public class Tag {
 			+ "\"name\":\"" + getName() + "\","
 			+ "\"type\":\"" + getType() + "\",";
 		
-		if (xpath != null) {
+		if (xpath != null && !xpath.equals("")) {
 			result += "\"xpath\":\"" + getXpath() + "\",";
 		}
 		
@@ -149,28 +136,32 @@ public class Tag {
 		return result + builder.toString() + "}";
 	}
 	
+	public String getParentResultXpath() {
+		// find nearest LRE ancestor and get its xpath
+		String prefix = "";
+		Tag parent = this.getParent();
+		while (parent != null) {
+			if (parent.getType() == JSONTraceListener.TYPE_LRE) {
+				prefix = parent.getXpath();
+				break;
+			}
+			parent = parent.getParent();
+		}
+		
+		return prefix;
+	}
+	
 	/**
 	 * Copy tags from another subset into current tag, modifying result xpath
 	 * @param subset
 	 */
 	public void copyTags(Tag subset) {
 		// find nearest LRE ancestor and use its xpath as prefix
-		String prefix = "";
-		Tag parent = this;
-		do {
-			if (parent.getType() == JSONTraceListener.TYPE_LRE) {
-				prefix = parent.getXpath();
-				break;
-			}
-			parent = parent.getParent();
-		} while (parent != null);
-		
-		
 		for (Tag child : subset.getChildren()) {
 			this.addChild(child);
 		}
 		
-		updateXPath(prefix, subset);
+		updateXPath(getParentResultXpath(), subset);
 	}
 	
 	/**

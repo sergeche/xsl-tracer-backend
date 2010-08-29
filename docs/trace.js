@@ -62,20 +62,6 @@ var tag = {
 	},
 	
 	/**
-	 * A context XSL template which outputs current tag
-	 */
-	tmpl: {
-		/** Root tag's resource vocabulary name ('xsl' or 'xml') */
-		v: "xsl",
-		/** Line number (if any) */
-		l: 11,
-		/** Resource index in vocabulary */
-		i: 2,
-		/** XPath to element definition */
-		xpath: "/xsl:stylesheet[1]/xsl:template[1]"
-	},
-	
-	/**
 	 * List of children tags
 	 * @type {Tag[]}
 	 */

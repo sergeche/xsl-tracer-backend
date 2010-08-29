@@ -17,7 +17,6 @@ import com.icl.saxon.style.LiteralResultElement;
 import com.icl.saxon.style.StyleElement;
 import com.icl.saxon.style.XSLCopyOf;
 import com.icl.saxon.style.XSLElement;
-import com.icl.saxon.style.XSLTemplate;
 import com.icl.saxon.style.XSLVariable;
 import com.icl.saxon.trace.TraceListener;
 
@@ -95,14 +94,12 @@ public class JSONTraceListener implements TraceListener {
     	if (allowedElement(element)) {
     		Tag tag = new Tag(makeName(element, context));
     		tag.setType(getNodeType(element));
+    		cur_tag.addChild(tag);
     		
     		if (tag.getType() == TYPE_LRE)
-    			tag.setXpath(getLREPath(element, context, null));
-    		else
-    			tag.setXpath(Navigator.getPath(element));
-    		
-    		if (element instanceof XSLTemplate)
-    			tag.setTemplateReference(element.getSystemId(), Navigator.getPath(element), element.getLineNumber());
+    			tag.setXpath(tag.getParentResultXpath() + "/" + 
+    					makeName(element, context) + 
+    					"[" + getLRENumber(element, context) + "]");
     		
     		String collectionName = (element instanceof StyleElement) ? "xsl" : "xml";
     		tag.setSourceReference(collectionName, element.getSystemId(), 
@@ -113,7 +110,6 @@ public class JSONTraceListener implements TraceListener {
             	tmp_source = null;
             }
             
-            cur_tag.addChild(tag);
             cur_tag = tag;
     	}
     }
