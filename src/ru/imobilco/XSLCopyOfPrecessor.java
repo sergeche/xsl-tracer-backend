@@ -11,10 +11,13 @@ import com.icl.saxon.expr.FragmentValue;
 import com.icl.saxon.expr.NodeSetExpression;
 import com.icl.saxon.expr.Value;
 import com.icl.saxon.expr.VariableReference;
+import com.icl.saxon.om.Axis;
+import com.icl.saxon.om.AxisEnumeration;
 import com.icl.saxon.om.NamePool;
 import com.icl.saxon.om.NodeEnumeration;
 import com.icl.saxon.om.NodeInfo;
 import com.icl.saxon.output.NamespaceEmitter;
+import com.icl.saxon.pattern.NodeTypeTest;
 import com.icl.saxon.style.XSLCopyOf;
 import com.icl.saxon.style.XSLVariable;
 
@@ -41,19 +44,24 @@ public class XSLCopyOfPrecessor {
     
     public void process(XSLCopyOf node, Context context, Tag tag) {
     	String selectAttr = node.getAttribute("select");
-    	String result = "";
     	if (selectAttr != null) {
     		try {
     			Expression select = node.makeExpression(selectAttr);
 
     			if (select instanceof NodeSetExpression) {
     				NodeEnumeration enm = select.enumerate(context, true);
-    				// TODO write down  
+    				Tag parent = new Tag("");
+    				
+    				// gather all child nodes in a new subset
     				while (enm.hasMoreElements()) {
     					NodeInfo n = enm.nextElement();
-    					result += n.getDisplayName() + ";";
+    					if (n.getNodeType() == NodeInfo.ELEMENT) {
+    						processNodeSetElement(n, parent);
+    					}
     				}
     				
+    				// copy nodes from subset to context nodes
+    				tag.copyTags(parent);
     			} else {
     				Value value = select.evaluate(context);
     				if (value instanceof FragmentValue) {
@@ -89,10 +97,27 @@ public class XSLCopyOfPrecessor {
 			emitter.startDocument();
 			((FragmentValue)value).replay(emitter);
 			emitter.endDocument();
-			jsonEmitter.copyTags(tag);
+//			jsonEmitter.copyTags(tag);
+			tag.copyTags(jsonEmitter.getRootTag());
 		} catch (TransformerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    private void processNodeSetElement(NodeInfo info, Tag parent) {
+    	Tag child = new Tag(info.getDisplayName());
+    	parent.addChild(child);
+    	
+		child.setType(JSONTraceListener.TYPE_LRE);
+		child.setXpath(Tag.getPath(child));
+		child.setContextReference(info.getSystemId(), child.getXpath(), info.getLineNumber());
+		
+		AxisEnumeration children =
+            info.getEnumeration(Axis.CHILD, new NodeTypeTest(NodeInfo.ELEMENT));
+
+        while (children.hasMoreElements()) {
+        	processNodeSetElement(children.nextElement(), child);
+        }
     }
 }

@@ -37,6 +37,9 @@ public class JSONTraceListener implements TraceListener {
     protected RootTag root;
     protected Tag cur_tag;
     
+    public static final String TYPE_LRE = "LRE";
+    public static final String TYPE_XSL = "XSL";
+    
     public JSONTraceListener() {
 		this.root = new RootTag("root");
 		allowedXslTags.add("xsl:template");
@@ -93,7 +96,7 @@ public class JSONTraceListener implements TraceListener {
     		Tag tag = new Tag(makeName(element, context));
     		tag.setType(getNodeType(element));
     		
-    		if (tag.getType() == "LRE")
+    		if (tag.getType() == TYPE_LRE)
     			tag.setXpath(getLREPath(element, context, null));
     		else
     			tag.setXpath(Navigator.getPath(element));
@@ -133,7 +136,7 @@ public class JSONTraceListener implements TraceListener {
 
     private boolean allowedElement(NodeInfo element) {
     	return element.getNodeType() == NodeInfo.ELEMENT && 
-    		(getNodeType(element) == "LRE" || 
+    		(getNodeType(element) == TYPE_LRE || 
     			allowedXslTags.contains(element.getDisplayName()));
 	}
     
@@ -143,9 +146,9 @@ public class JSONTraceListener implements TraceListener {
      */
     protected String getNodeType(NodeInfo info) {
         if (info instanceof LiteralResultElement || info instanceof XSLElement) {
-        	return "LRE";
+        	return TYPE_LRE;
         } else {
-        	return "XSL";
+        	return TYPE_XSL;
         }
     }
 
@@ -203,7 +206,7 @@ public class JSONTraceListener implements TraceListener {
          NodeInfo iterNode = node;
          do {
         	 if (iterNode.getNodeType() == NodeInfo.ELEMENT) {
-        		 if (getNodeType(iterNode) == "LRE") {
+        		 if (getNodeType(iterNode) == TYPE_LRE) {
         			 xpath = "/" + makeName(iterNode, context) + "[" + getLRENumber(iterNode, context) + "]" + xpath;
         		 }
         	 }

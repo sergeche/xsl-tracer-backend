@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tag {
-	private String type;
+	private String type = "";
 	private String name;
 	private List<Tag> children = new ArrayList<Tag>();
 	
@@ -147,6 +147,42 @@ public class Tag {
 		}
 		builder.append("]");
 		return result + builder.toString() + "}";
+	}
+	
+	/**
+	 * Copy tags from another subset into current tag, modifying result xpath
+	 * @param subset
+	 */
+	public void copyTags(Tag subset) {
+		// find nearest LRE ancestor and use its xpath as prefix
+		String prefix = "";
+		Tag parent = this;
+		do {
+			if (parent.getType() == JSONTraceListener.TYPE_LRE) {
+				prefix = parent.getXpath();
+				break;
+			}
+			parent = parent.getParent();
+		} while (parent != null);
+		
+		
+		for (Tag child : subset.getChildren()) {
+			this.addChild(child);
+		}
+		
+		updateXPath(prefix, subset);
+	}
+	
+	/**
+	 * Recursively update result xpath in all subset tags by adding prefix to it
+	 * @param prefix
+	 * @param subset
+	 */
+	private void updateXPath(String prefix, Tag subset) {
+		for (Tag child : subset.getChildren()) {
+			child.setXpath(prefix + child.getXpath());
+			updateXPath(prefix, child);
+		}
 	}
 
 	public static String getPath(Tag tag) {

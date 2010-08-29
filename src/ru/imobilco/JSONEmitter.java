@@ -50,7 +50,7 @@ public class JSONEmitter extends Emitter {
 		
 		String collectionName = (sourceElement instanceof StyleElement) ? "xsl" : "xml";
 		tag.setXpath(Tag.getPath(tag));
-		tag.setType("LRE");
+		tag.setType(JSONTraceListener.TYPE_LRE);
 		tag.setSourceReference(collectionName, sourceElement.getSystemId(), 
 				Navigator.getPath(sourceElement) + tag.getXpath(), 
 				sourceElement.getLineNumber());
@@ -94,24 +94,9 @@ public class JSONEmitter extends Emitter {
 	public NodeInfo getSourceElement() {
 		return sourceElement;
 	}
-
-	public void copyTags(Tag parentTag) {
-		// find nearest LRE ancestor and use its xpath as prefix
-		String prefix = "";
-		Tag parent = parentTag;
-		do {
-			if (parent.getType() == "LRE") {
-				prefix = parent.getXpath();
-				break;
-			}
-			parent = parent.getParent();
-		} while (parent != null);
-		
-		
-		for (Tag child : root.getChildren()) {
-			parentTag.addChild(child);
-			child.setXpath(prefix + child.getXpath());
-		}
+	
+	public Tag getRootTag() {
+		return root;
 	}
 
 }
