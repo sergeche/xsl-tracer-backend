@@ -40,7 +40,7 @@ public class RootTag extends Tag {
 	private String outputXslCollection() {
 		String baseXslPath = "";
 		if (baseXsl != null)
-			baseXslPath = new File(baseXsl).getParent();
+			baseXslPath = new File(baseXsl).getParent() + "/";
 		
 		return ResourceReference.collectionToJSON("xsl", baseXslPath);
 	}
@@ -51,8 +51,13 @@ public class RootTag extends Tag {
 		String result = "";
 		
 		if (baseXml != null) {
-			baseXmlPath = new File(baseXml).getParent();
 			sourceXml = baseXml.toString();
+		}
+		
+		// basically, all external xml files (except SOURCE) are included with
+		// document() xpath function, so we have to use baseXsl as staring point
+		if (baseXsl != null) {
+			baseXmlPath = new File(baseXsl).getParent() + "/";
 		}
 		
 		// output xml collection in other way
