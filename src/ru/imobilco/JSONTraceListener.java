@@ -41,7 +41,7 @@ public class JSONTraceListener implements TraceListener {
     public static final String TYPE_XSL = "XSL";
     
     public JSONTraceListener() {
-		this.root = new RootTag("root");
+		root = new RootTag("root");
 		allowedXslTags.add("xsl:template");
 		allowedXslTags.add("xsl:call-template");
 		allowedXslTags.add("xsl:apply-templates");
@@ -238,6 +238,15 @@ public class JSONTraceListener implements TraceListener {
     	  }
     	  
     	  return pos;
+      }
+      
+      /**
+       * Setup base XML and XSL files used for transformation
+       * @param xmlFile
+       * @param xslFile
+       */
+      public void setBaseFiles(String xmlFile, String xslFile) {
+    	  root.setBaseFiles(xmlFile, xslFile);
       }
       
       public static String escapeHTML(String text) {

@@ -117,11 +117,15 @@ public class ResourceReference {
 	    return relative;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static List<String> getCollection(String collectionName) {
+		return (List<String>) collections.get(collectionName);
+	}
+	
 	public static String collectionToJSON(String collectionName, String basePath) {
 		String result = "\"" + collectionName + "\":[";
 		
-		@SuppressWarnings("unchecked")
-		List<String> collection = (List<String>) collections.get(collectionName);
+		List<String> collection = getCollection(collectionName);
 		
 		if (collection != null) {
 			for (int i = 0; i < collection.size(); i++) {
@@ -134,7 +138,7 @@ public class ResourceReference {
 		return result + "]";
 	}
 	
-	private static String relativizePath(String fileURI, String basePath) {
+	public static String relativizePath(String fileURI, String basePath) {
     	String file = null;
     	try {
 			file = getRelativePath(new URI(fileURI).getPath(), basePath, "/");
