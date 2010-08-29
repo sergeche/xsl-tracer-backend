@@ -118,9 +118,9 @@ public class Tag {
 			+ "\"name\":\"" + getName() + "\","
 			+ "\"type\":\"" + getType() + "\",";
 		
-		if (xpath != null && !xpath.equals("")) {
-			result += "\"xpath\":\"" + getXpath() + "\",";
-		}
+//		if (xpath != null && !xpath.equals("")) {
+//			result += "\"xpath\":\"" + getXpath() + "\",";
+//		}
 		
 		result += collectionsToString();
 		
@@ -161,19 +161,7 @@ public class Tag {
 			this.addChild(child);
 		}
 		
-		updateXPath(getParentResultXpath(), subset);
-	}
-	
-	/**
-	 * Recursively update result xpath in all subset tags by adding prefix to it
-	 * @param prefix
-	 * @param subset
-	 */
-	private void updateXPath(String prefix, Tag subset) {
-		for (Tag child : subset.getChildren()) {
-			child.setXpath(prefix + child.getXpath());
-			updateXPath(prefix, child);
-		}
+//		updateXPath(getParentResultXpath(), subset);
 	}
 
 	public static String getPath(Tag tag) {

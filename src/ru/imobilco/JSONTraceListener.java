@@ -96,10 +96,10 @@ public class JSONTraceListener implements TraceListener {
     		tag.setType(getNodeType(element));
     		cur_tag.addChild(tag);
     		
-    		if (tag.getType() == TYPE_LRE)
-    			tag.setXpath(tag.getParentResultXpath() + "/" + 
-    					makeName(element, context) + 
-    					"[" + getLRENumber(element, context) + "]");
+//    		if (tag.getType() == TYPE_LRE)
+//    			tag.setXpath(tag.getParentResultXpath() + "/" + 
+//    					makeName(element, context) + 
+//    					"[" + getLRENumber(element, context) + "]");
     		
     		String collectionName = (element instanceof StyleElement) ? "xsl" : "xml";
     		tag.setSourceReference(collectionName, element.getSystemId(), 
