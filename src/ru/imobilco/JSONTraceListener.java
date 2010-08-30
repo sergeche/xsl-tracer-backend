@@ -31,7 +31,7 @@ public class JSONTraceListener implements TraceListener {
     private NodeInfo tmp_source;
     private List<String> allowedXslTags = new ArrayList<String>();
     private XSLCopyOfPrecessor coProcessor;
-    private boolean skipTag = false;
+    private int skipTag = 0;
     
     protected RootTag root;
     protected Tag cur_tag;
@@ -86,20 +86,11 @@ public class JSONTraceListener implements TraceListener {
      */
     public void enter(NodeInfo element, Context context) {
     	if (element instanceof XSLVariable)
-    		skipTag = true;
-    	
-    	if (skipTag)
-    		return;
-    	
-    	if (allowedElement(element)) {
+    		skipTag++;
+    	else if (skipTag == 0 && allowedElement(element)) {
     		Tag tag = new Tag(makeName(element, context));
     		tag.setType(getNodeType(element));
     		cur_tag.addChild(tag);
-    		
-//    		if (tag.getType() == TYPE_LRE)
-//    			tag.setXpath(tag.getParentResultXpath() + "/" + 
-//    					makeName(element, context) + 
-//    					"[" + getLRENumber(element, context) + "]");
     		
     		String collectionName = (element instanceof StyleElement) ? "xsl" : "xml";
     		tag.setSourceReference(collectionName, element.getSystemId(), 
@@ -120,8 +111,8 @@ public class JSONTraceListener implements TraceListener {
 
     public void leave(NodeInfo element, Context context) {
     	if (element instanceof XSLVariable)
-    		skipTag = false;
-    	else if (!skipTag && allowedElement(element)) {
+    		skipTag--;
+    	else if (skipTag == 0 && allowedElement(element)) {
 			if (element instanceof XSLCopyOf)
 				coProcessor.process((XSLCopyOf) element, context, cur_tag);
 			
