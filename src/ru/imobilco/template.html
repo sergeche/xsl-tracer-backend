@@ -1,81 +1,0 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>XSL Tracer</title>
-		<link rel="stylesheet" href="./css/ui.css" />
-		<script type="text/javascript" src="./v2/lib/jquery-1.4.2.min.js"></script>
-		<script type="text/javascript" src="./v2/lib/json2.js"></script>
-		<script type="text/javascript" src="./v2/lib/EventDispatcher.js"></script>
-		<script type="text/javascript" src="./v2/event-names.js"></script>
-		<script type="text/javascript" src="./v2/errors.js"></script>
-		<script type="text/javascript" src="./v2/xsl_tracer.js"></script>
-		<script type="text/javascript" src="./v2/resource.js"></script>
-		<script type="text/javascript" src="./v2/utils.js"></script>
-		<script type="text/javascript" src="./v2/renderer.js"></script>
-		<script type="text/javascript" src="./v2/sections.js"></script>
-		<script type="text/javascript" src="./v2/top-panel.js"></script>
-		<script type="text/javascript" src="./v2/bottom-panel.js"></script>
-		<script type="text/javascript" src="./v2/ui.js"></script>
-		<script type="text/javascript" src="./v2/preloader.js"></script>
-	</head>
-	<body>
-		<div id="xt-preloader">
-			<h3>Loading...</h3>
-			<div class="xt-files"></div>
-			<div id="xt-preloader-other-errors">
-				<h3>Errors:</h3>
-			</div>
-		</div>
-		<!-- 
-			Uncomment the #xt-global-error block to show server error and
-			cancel XSL tracer initialization
-		 -->
-		<!-- 
-		<div id="xt-global-error">			<h2>Error</h2>			<div id="xt-global-error-content">				<p>The XSL traces cannot be initialized because of the following server error:</p>				<div class="xt-error">Server error here</div>			</div>		</div> 
-		-->
-		
-		<div id="xt-page">			<div id="xt-top-panel">
-				<div class="xt-view-file">
-					<label for="file">View file: </label>
-					<select name="file" id="fld-xt-file"></select>
-				</div>
-			</div>			<div id="xt-page-body">				<div id="xt-content"></div>			</div>			<div id="xt-trace-info">				<div class="xt-panel-header">XSL trace panel</div>
-				<div class="xt-section" id="xt-xsl-section">
-					<h2>
-						<span class="xt-subtitle xt-file-link"></span>
-						<span class="xt-title">XSL</span>
-					</h2>
-					<h3>
-						<span class="xt-copy-buf"></span>
-						<span class="xt-xpath"></span>
-					</h3>
-					<div class="xt-section-content"></div>
-				</div>				<div class="xt-section" id="xt-xml-section">
-					<h2>
-						<span class="xt-subtitle xt-file-link"></span>
-						<span class="xt-title">Context XML</span>
-					</h2>
-					<h3>
-						<span class="xt-copy-buf"></span>
-						<span class="xt-xpath"></span>
-					</h3>
-					<div class="xt-section-content"></div>
-				</div>				<div class="xt-section" id="xt-callstack-section">
-					<h3>
-						<span class="xt-title">Call stack</span>
-					</h3>
-				</div>			</div>		</div>
-		
-		<script type="text/javascript">
-			$(function(){
-			 	xsl_tracer.init({
-			 		template_path: './test/xsl/',
-			 		source_url: './test/xml/simple.xml',
-			 		trace_url: './test/out/simple.xhtml.json', 
-			 		result_url: './test/out/simple.xhtml'
-			 	});
-			});
-		</script>
-	</body>
-</html>

@@ -120,8 +120,8 @@ public class XSLTracer extends StyleSheet {
 		Transformer instance = sheet.newTransformer();
 		((Controller) instance).setParams(params);
 		
-		setTemplateUrl(source.getSystemId());
-		setSourceUrl(((PreparedStyleSheet) sheet).getStyleSheetDocument().getSystemId());
+		setSourceUrl(source.getSystemId());
+		setTemplateUrl(((PreparedStyleSheet) sheet).getStyleSheetDocument().getSystemId());
 
 		String result = makeTraceDocument(source, sheet);
 		saveResult(result);
