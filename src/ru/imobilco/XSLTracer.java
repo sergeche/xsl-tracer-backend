@@ -68,8 +68,7 @@ public class XSLTracer extends StyleSheet {
 		tracer.doMain(cleanArgs, new XSLTracer(), name);
 	}
 	
-	public void setTracerOutput(String fileName) {
-		tracerOutput = new File(fileName);
+	public void setTracerOutput() {
 		JSONTraceListener traceListener = new JSONTraceListener();
 		try {
 			writer = new PrintStream(traceStream, true, "utf-8");
@@ -81,6 +80,11 @@ public class XSLTracer extends StyleSheet {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void setTracerOutput(String fileName) {
+		tracerOutput = new File(fileName);
+		setTracerOutput();
 	}
 
 	/**
@@ -120,8 +124,8 @@ public class XSLTracer extends StyleSheet {
 		Transformer instance = sheet.newTransformer();
 		((Controller) instance).setParams(params);
 		
-		setTemplateUrl(source.getSystemId());
-		setSourceUrl(((PreparedStyleSheet) sheet).getStyleSheetDocument().getSystemId());
+		setSourceUrl(source.getSystemId());
+		setTemplateUrl(((PreparedStyleSheet) sheet).getStyleSheetDocument().getSystemId());
 
 		String result = makeTraceDocument(source, sheet);
 		saveResult(result);

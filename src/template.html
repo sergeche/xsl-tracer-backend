@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>XSL Tracer</title>
+		<link rel="stylesheet" href="http://media.chikuyonok.ru/xsl-tracer/xsl-tracer.css" />
+		<script type="text/javascript" src="http://media.chikuyonok.ru/xsl-tracer/jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="http://media.chikuyonok.ru/xsl-tracer/xsl-tracer.js"></script>
+	</head>
+	<body>
+		<div id="xt-preloader">
+			<h3>Loading...</h3>
+			<div class="xt-files"></div>
+			<div id="xt-preloader-other-errors">
+				<h3>Errors:</h3>
+			</div>
+		</div>
+		{0}
+		<div id="xt-page">			<div id="xt-top-panel">
+				<div class="xt-view-file">
+					<label for="file">View file: </label>
+					<select name="file" id="fld-xt-file"></select>
+				</div>
+			</div>			<div id="xt-page-body">				<div id="xt-content"></div>			</div>			<div id="xt-trace-info">				<div class="xt-panel-header">XSL trace panel</div>
+				<div class="xt-section" id="xt-xsl-section">
+					<h2>
+						<span class="xt-subtitle xt-file-link"></span>
+						<span class="xt-title">XSL</span>
+					</h2>
+					<h3>
+						<span class="xt-copy-buf"></span>
+						<span class="xt-xpath"></span>
+					</h3>
+					<div class="xt-section-content"></div>
+				</div>				<div class="xt-section" id="xt-xml-section">
+					<h2>
+						<span class="xt-subtitle xt-file-link"></span>
+						<span class="xt-title">Context XML</span>
+					</h2>
+					<h3>
+						<span class="xt-copy-buf"></span>
+						<span class="xt-xpath"></span>
+					</h3>
+					<div class="xt-section-content"></div>
+				</div>				<div class="xt-section" id="xt-callstack-section">
+					<h3>
+						<span class="xt-title">Call stack</span>
+					</h3>
+				</div>			</div>		</div>
+		
+		<div id="xt-result-doc" class="xt-document">{1}</div>
+		<script type="text/javascript">
+			var xsl_tracing_data = {2};
+		</script>
+		
+		<script type="text/javascript">
+			$(function()'{'
+			 	xsl_tracer.init('{'
+			 		template_url: "{3}",
+			 		source_url: "{4}",
+			 		trace_url: xsl_tracing_data, 
+			 		result_url: document.getElementById("xt-result-doc")
+			 	'}');
+			'}');
+		</script>
+	</body>
+</html>
