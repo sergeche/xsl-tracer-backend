@@ -25,9 +25,7 @@ import javax.xml.transform.stream.StreamResult;
 import com.icl.saxon.Controller;
 import com.icl.saxon.FeatureKeys;
 import com.icl.saxon.ParameterSet;
-import com.icl.saxon.PreparedStyleSheet;
 import com.icl.saxon.StyleSheet;
-import com.icl.saxon.trace.TraceListener;
 
 public class XSLTracer extends StyleSheet {
 
@@ -37,9 +35,6 @@ public class XSLTracer extends StyleSheet {
 	private static PrintStream writer = System.err;
 	private static PrintStream outputStream = System.out;
 	
-	private String templateUrl = "";
-	private String sourceUrl = "";
-
 	public static void main(String args[]) throws java.lang.Exception {
 		String name = " java ru.imobilco.XSLTracer";
 		XSLTracer tracer = new XSLTracer();
@@ -88,34 +83,6 @@ public class XSLTracer extends StyleSheet {
 	}
 
 	/**
-	 * Set base template URL used for transformation. You should set this 
-	 * property right before calling <code>makeTraceDocument</code>, because
-	 * this result will be printed in result document
-	 * @param templateUrl
-	 */
-	public void setTemplateUrl(String templateUrl) {
-		this.templateUrl = templateUrl;
-	}
-
-	public String getTemplateUrl() {
-		return templateUrl;
-	}
-
-	/**
-	 * Set source XML URL used for transformation. You should set this 
-	 * property right before calling <code>makeTraceDocument</code>, because
-	 * this result will be printed in result document
-	 * @param sourceUrl
-	 */
-	public void setSourceUrl(String sourceUrl) {
-		this.sourceUrl = sourceUrl;
-	}
-
-	public String getSourceUrl() {
-		return sourceUrl;
-	}
-
-	/**
 	 * Process a single file using a supplied stylesheet
 	 */
 	public void processFile(Source source, Templates sheet, File outputFile,
@@ -123,9 +90,6 @@ public class XSLTracer extends StyleSheet {
 		
 		Transformer instance = sheet.newTransformer();
 		((Controller) instance).setParams(params);
-		
-		setSourceUrl(source.getSystemId());
-		setTemplateUrl(((PreparedStyleSheet) sheet).getStyleSheetDocument().getSystemId());
 
 		String result = makeTraceDocument(source, sheet);
 		saveResult(result);
@@ -168,14 +132,6 @@ public class XSLTracer extends StyleSheet {
 	 * @throws TransformerConfigurationException 
 	 */
 	public String makeTraceDocument(Source source, Templates sheet) throws TransformerConfigurationException {
-		TraceListener tracer = (TraceListener) factory.getAttribute(FeatureKeys.TRACE_LISTENER);
-		
-		if (tracer != null && tracer instanceof JSONTraceListener) {
-			((JSONTraceListener) tracer).setBaseFiles(source.getSystemId(),
-					((PreparedStyleSheet) sheet).getStyleSheetDocument()
-							.getSystemId());
-		}
-
 		Transformer instance = sheet.newTransformer();
 
 		// force transformer to output XML result
@@ -211,7 +167,7 @@ public class XSLTracer extends StyleSheet {
 	private String outputTraceDocument() {
 		return MessageFormat.format(getTemplate(), "", 
 				escapeHTML(resultStream.toString()), traceStream.toString(),
-				getTemplateUrl(), getSourceUrl());
+				"", "");
 	}
 	
 	private String outputErrorDocument(Exception e) {

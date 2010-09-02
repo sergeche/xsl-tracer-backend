@@ -227,15 +227,6 @@ public class JSONTraceListener implements TraceListener {
     	  return pos;
       }
       
-      /**
-       * Setup base XML and XSL files used for transformation
-       * @param xmlFile
-       * @param xslFile
-       */
-      public void setBaseFiles(String xmlFile, String xslFile) {
-    	  root.setBaseFiles(xmlFile, xslFile);
-      }
-      
       public static String escapeHTML(String text) {
     	  final StringBuilder result = new StringBuilder();
     	  final StringCharacterIterator iterator = new StringCharacterIterator(text);
