@@ -216,12 +216,23 @@ public class XSLTracer extends StyleSheet {
 	
 	private String outputErrorDocument(Exception e) {
 		// contruct error message
+		String errMessage = e.toString();
+		
+		ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+		try {
+			PrintStream errWriter = new PrintStream(errStream, true, "utf-8");
+			e.printStackTrace(errWriter);
+			errMessage = "<pre>" + errStream.toString() + "</pre>";
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
+		
 		String error = "<div id=\"xt-global-error\">" +
 				"<h2>Error</h2>" +
 				"<div id=\"xt-global-error-content\">" +
 				"<p>The XSL traces cannot be initialized because of the following server error:</p>" +
 				"<div class=\"xt-error\">" +
-				e.toString() +
+				errMessage +
 				"</div></div></div>";
 		
 		return MessageFormat.format(getTemplate(), error, "", "{}", "", "");
