@@ -141,7 +141,7 @@ public class Tag {
 		String prefix = "";
 		Tag parent = this.getParent();
 		while (parent != null) {
-			if (parent.getType() == JSONTraceListener.TYPE_LRE) {
+			if (JSONTraceListener.TYPE_LRE.equals(parent.getType())) {
 				prefix = parent.getXpath();
 				break;
 			}
@@ -180,7 +180,7 @@ public class Tag {
 		int pos = 1;
 		Tag prev = tag.getPreviousSibling();
 		while (prev != null) {
-			if (prev.getName() == curName)
+			if (curName.equals(prev.getName()))
 				pos++;
 			prev = prev.getPreviousSibling();
 		}

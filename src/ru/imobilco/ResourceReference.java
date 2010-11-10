@@ -188,4 +188,12 @@ public class ResourceReference {
 			return ""; // we expect people to add + "/somedir on their own
 		}
 	}
+	
+	/**
+	 * Removes all saved resource references (should do this after trace 
+	 * is completed)
+	 */
+	public static void reset() {
+		collections.clear();
+	}
 }

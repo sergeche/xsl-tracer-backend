@@ -57,6 +57,7 @@ public class JSONTraceListener implements TraceListener {
      */
     public void open() {
     	cur_tag = root;
+    	ResourceReference.reset();
     }
 
     /**
@@ -64,6 +65,7 @@ public class JSONTraceListener implements TraceListener {
      */
     public void close() {
     	out.println(root.toString());
+    	ResourceReference.reset();
     }
     
     public void toplevel(NodeInfo element) {
@@ -123,7 +125,7 @@ public class JSONTraceListener implements TraceListener {
 
     private boolean allowedElement(NodeInfo element) {
     	return element.getNodeType() == NodeInfo.ELEMENT && 
-    		(getNodeType(element) == TYPE_LRE || 
+    		(TYPE_LRE.equals(getNodeType(element)) || 
     			allowedXslTags.contains(element.getDisplayName()));
 	}
     
@@ -192,7 +194,7 @@ public class JSONTraceListener implements TraceListener {
          String xpath = "";
          NodeInfo iterNode = node;
          do {
-        	 if (iterNode.getNodeType() == NodeInfo.ELEMENT) {
+        	 if (TYPE_LRE.equals(getNodeType(iterNode))) {
         		 if (getNodeType(iterNode) == TYPE_LRE) {
         			 xpath = "/" + makeName(iterNode, context) + "[" + getLRENumber(iterNode, context) + "]" + xpath;
         		 }

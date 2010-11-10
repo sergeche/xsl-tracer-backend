@@ -20,6 +20,7 @@ import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 
 import com.icl.saxon.Controller;
@@ -30,10 +31,14 @@ import com.icl.saxon.StyleSheet;
 public class XSLTracer extends StyleSheet {
 
 	private File tracerOutput;
-	private static ByteArrayOutputStream traceStream = new ByteArrayOutputStream();
-	private static ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-	private static PrintStream writer = System.err;
-	private static PrintStream outputStream = System.out;
+	private ByteArrayOutputStream traceStream = new ByteArrayOutputStream();
+	private ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
+	private PrintStream writer = System.err;
+	private PrintStream outputStream = System.out;
+	
+	public TransformerFactory getFactory() {
+        return this.factory;
+    }
 	
 	public static void main(String args[]) throws java.lang.Exception {
 		String name = " java ru.imobilco.XSLTracer";
