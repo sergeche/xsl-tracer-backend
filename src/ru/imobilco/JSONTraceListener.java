@@ -57,7 +57,6 @@ public class JSONTraceListener implements TraceListener {
      */
     public void open() {
     	cur_tag = root;
-    	ResourceReference.reset();
     }
 
     /**
@@ -65,7 +64,6 @@ public class JSONTraceListener implements TraceListener {
      */
     public void close() {
     	out.println(root.toString());
-    	ResourceReference.reset();
     }
     
     public void toplevel(NodeInfo element) {

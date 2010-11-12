@@ -66,6 +66,21 @@ public class Tag {
 	}
 	
 	/**
+	 * Returns root tag
+	 * @return
+	 */
+	public RootTag getRoot() {
+		Tag tag = getParent();
+		while (tag.getParent() != null)
+			tag = tag.getParent();
+		
+		if (tag != null && tag instanceof RootTag)
+			return (RootTag) tag;
+		
+		return null;
+	}
+	
+	/**
 	 * Add child tag
 	 * @param child
 	 */
@@ -84,7 +99,7 @@ public class Tag {
 	}
 	
 	public void setContextReference(String fileUri, String xpath, int lineNum) {
-		contextRef = new ResourceReference("xml", fileUri, xpath, lineNum);
+		contextRef = new ResourceReference("xml", fileUri, xpath, lineNum, getRoot());
 	}
 	
 	public ResourceReference getContextReference() {
@@ -92,7 +107,7 @@ public class Tag {
 	}
 	
 	public void setSourceReference(String collectionName, String fileUri, String xpath, int lineNum) {
-		sourceRef = new ResourceReference(collectionName, fileUri, xpath, lineNum);
+		sourceRef = new ResourceReference(collectionName, fileUri, xpath, lineNum, getRoot());
 	}
 	
 	public ResourceReference getSourceReference() {
@@ -117,10 +132,6 @@ public class Tag {
 		String result = "{"
 			+ "\"name\":\"" + getName() + "\","
 			+ "\"type\":\"" + getType() + "\",";
-		
-//		if (xpath != null && !xpath.equals("")) {
-//			result += "\"xpath\":\"" + getXpath() + "\",";
-//		}
 		
 		result += collectionsToString();
 		

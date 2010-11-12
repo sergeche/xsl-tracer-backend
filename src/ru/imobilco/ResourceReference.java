@@ -2,9 +2,7 @@ package ru.imobilco;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 /**
@@ -13,30 +11,19 @@ import java.util.regex.Pattern;
  * @link http://chikuyonok.ru
  */
 public class ResourceReference {
-	private static Properties collections = new Properties();
-	
 	private String collectionName;
-	private int ix;
+	private int ix = -1;
 	private int lineNum = -1;
+	private String fileUri;
 	private String xpath;
 
-	public ResourceReference(String collectionName, String fileUri, String xpath, int lineNum) {
+	public ResourceReference(String collectionName, String fileUri, String xpath, int lineNum, RootTag rootTag) {
 		this.collectionName = collectionName;
-		if (collections.get(collectionName) == null) {
-			collections.put(collectionName, new ArrayList<String>());
-		}
-		
-		@SuppressWarnings("unchecked")
-		List<String> collection = (List<String>) collections.get(collectionName);
-		
-		ix = collection.indexOf(fileUri);
-		if (ix == -1) {
-			collection.add(fileUri);
-			ix = collection.size() - 1;
-		}
-		
 		this.setXpath(xpath);
 		this.lineNum = lineNum;
+		this.fileUri = fileUri;
+		if (rootTag != null)
+			ix = rootTag.addToCollection(this);
 	}
 
 	public void setXpath(String xpath) {
@@ -57,7 +44,7 @@ public class ResourceReference {
 	
 	public String toString() {
 		String result = "{" +
-		"\"v\": \"" + collectionName + "\"," +
+		"\"v\": \"" + getCollectionName() + "\"," +
 		"\"i\": " + getIndex() + ",";
 		if (lineNum > -1)
 			result += "\"l\": " + getLineNum() + ",";
@@ -116,38 +103,29 @@ public class ResourceReference {
 
 	    return relative;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public static List<String> getCollection(String collectionName) {
-		return (List<String>) collections.get(collectionName);
+		
+	public static String collectionToJSON(String collectionName, List<String> collection) {
+		return toJSON(collectionName, null, collection);
 	}
 	
-	public static String collectionToJSON(String collectionName) {
+	public static String collectionToJSON(String collectionName, String basePath, List<String> collection) {
+		return toJSON(collectionName, basePath, collection);
+	}
+	
+	private static String toJSON(String collectionName, String basePath, List<String> collection) {
 		String result = "\"" + collectionName + "\":[";
-		
-		List<String> collection = getCollection(collectionName);
+		String path;
 		
 		if (collection != null) {
 			for (int i = 0; i < collection.size(); i++) {
 				if (i > 0)
 					result += ",";
-				result += "\"" + collection.get(i) + "\"";
-			}
-		}
-		
-		return result + "]";
-	}
-	
-	public static String collectionToJSON(String collectionName, String basePath) {
-		String result = "\"" + collectionName + "\":[";
-		
-		List<String> collection = getCollection(collectionName);
-		
-		if (collection != null) {
-			for (int i = 0; i < collection.size(); i++) {
-				if (i > 0)
-					result += ",";
-				result += "\"" + relativizePath(collection.get(i), basePath) + "\"";
+				
+				path = collection.get(i);
+				if (basePath != null)
+					path = relativizePath(path, basePath);
+				
+				result += "\"" + path + "\"";
 			}
 		}
 		
@@ -188,12 +166,12 @@ public class ResourceReference {
 			return ""; // we expect people to add + "/somedir on their own
 		}
 	}
+
+	public String getCollectionName() {
+		return collectionName;
+	}
 	
-	/**
-	 * Removes all saved resource references (should do this after trace 
-	 * is completed)
-	 */
-	public static void reset() {
-		collections.clear();
+	public String getFileUri() {
+		return fileUri;
 	}
 }
