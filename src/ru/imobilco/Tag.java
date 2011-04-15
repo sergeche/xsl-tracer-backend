@@ -15,6 +15,9 @@ public class Tag {
 	private ResourceReference sourceRef;
 	private ResourceReference contextRef;
 	
+	private long startTime = 0;
+	private long endTime = 0;
+	
 	private String xpath = "";
 	
 	public Tag(String name) {
@@ -131,7 +134,8 @@ public class Tag {
 	public String toString() {
 		String result = "{"
 			+ "\"name\":\"" + getName() + "\","
-			+ "\"type\":\"" + getType() + "\",";
+			+ "\"type\":\"" + getType() + "\","
+			+ "\"time\":" + (endTime - startTime) + ",";
 		
 		result += collectionsToString();
 		
@@ -197,5 +201,21 @@ public class Tag {
 		}
 		
 		return pos;
+	}
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(long time) {
+		this.startTime = time;
+	}
+
+	public long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(long time) {
+		this.endTime = time;
 	}
 }

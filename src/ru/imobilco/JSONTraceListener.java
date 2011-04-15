@@ -57,12 +57,14 @@ public class JSONTraceListener implements TraceListener {
      */
     public void open() {
     	cur_tag = root;
+    	root.setStartTime(System.currentTimeMillis());
     }
 
     /**
      * Called at end
      */
     public void close() {
+    	root.setEndTime(System.currentTimeMillis());
     	out.println(root.toString());
     }
     
@@ -89,6 +91,7 @@ public class JSONTraceListener implements TraceListener {
     		skipTag++;
     	else if (skipTag == 0 && allowedElement(element)) {
     		Tag tag = new Tag(makeName(element, context));
+    		tag.setStartTime(System.currentTimeMillis());
     		tag.setType(getNodeType(element));
     		cur_tag.addChild(tag);
     		
@@ -116,6 +119,7 @@ public class JSONTraceListener implements TraceListener {
 			if (element instanceof XSLCopyOf)
 				coProcessor.process((XSLCopyOf) element, context, cur_tag);
 			
+			cur_tag.setEndTime(System.currentTimeMillis());
 			cur_tag = cur_tag.getParent();
     	}
     }
