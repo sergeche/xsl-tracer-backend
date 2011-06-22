@@ -4,14 +4,14 @@
 var tag = {
 	/** 
 	 * List of external XSL modules used in current transformation.
-	 * <em>This property is availbale for root tag only.</em>
+	 * <em>This property is available for root tag only.</em>
 	 * @type {String[]}
 	 */
 	xsl: [],
 	
 	/** 
 	 * List of external XML modules used in current transformation.
-	 * <em>This property is availbale for root tag only.</em>
+	 * <em>This property is available for root tag only.</em>
 	 * @type {String[]}
 	 */
 	xml: [],

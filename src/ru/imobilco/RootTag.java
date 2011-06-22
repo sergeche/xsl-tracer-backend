@@ -42,4 +42,10 @@ public class RootTag extends Tag {
 		
 		return ix;
 	}
+	
+	public String toString() {
+		if (getEndTime() < getStartTime())
+			setEndTime(System.currentTimeMillis());
+		return super.toString();
+	}
 }
