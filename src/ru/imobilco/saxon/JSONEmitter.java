@@ -1,8 +1,10 @@
-package ru.imobilco;
+package ru.imobilco.saxon;
 
 import javax.xml.transform.TransformerException;
 
 import org.xml.sax.Attributes;
+
+import ru.imobilco.Tag;
 
 import com.icl.saxon.om.Navigator;
 import com.icl.saxon.om.NodeInfo;

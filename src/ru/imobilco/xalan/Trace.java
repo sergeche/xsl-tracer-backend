@@ -1,51 +1,84 @@
 package ru.imobilco.xalan;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Writer;
+
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.xalan.trace.TraceManager;
 import org.apache.xalan.transformer.TransformerImpl;
 
-/**
- * Sample for demonstrating Xalan "trace" interface. Usage: run in Trace
- * directory: java Trace For an extensions trace sample, run in extensions
- * directory: java Trace 3-java-namespace
- */
 public class Trace {
 	public static void main(String[] args) throws java.io.IOException,
 			TransformerException, TransformerConfigurationException,
 			java.util.TooManyListenersException, org.xml.sax.SAXException {
-		String fileName = "foo";
-		if (args.length > 0)
-			fileName = args[0];
-
-		// Set up a PrintTraceListener object to print to a file.
-		JSONTraceListener ptl = new JSONTraceListener();
+		
+		StreamSource xsl = new StreamSource("test/xsl/simple.xsl");
+		StreamSource xml = new StreamSource("test/xml/simple.xml");
 
 		// Set up the transformation
 		TransformerFactory tFactory = TransformerFactory.newInstance();
-		Transformer transformer = tFactory.newTransformer(new StreamSource("test/xsl/simple.xsl"));
+		Transformer transformer = tFactory.newTransformer(xsl);
 
-		// Cast the Transformer object to TransformerImpl.
 		if (transformer instanceof TransformerImpl) {
-			TransformerImpl transformerImpl = (TransformerImpl) transformer;
-			// Register the TraceListener with a TraceManager associated
-			// with the TransformerImpl.
-			TraceManager trMgr = transformerImpl.getTraceManager();
-			trMgr.addTraceListener(ptl);
-
-			// Perform the transformation --printing information to
-			// the events log during the process.
-			transformer
-					.transform(new StreamSource("test/xml/simple.xml"),
-							new StreamResult(new java.io.FileWriter(fileName
-									+ ".out")));
 			
-			System.out.print(ptl.toJSON());
+			// init XSL tracer
+			XSLTracer tracer = new XSLTracer((TransformerImpl) transformer);
+			
+			// get tracer template
+			InputStream templateStream = tracer.getClass().getResourceAsStream("/template.html");
+			String template = convertStreamToString(templateStream);
+			
+			// trace document
+			String traceDoc = tracer.traceDocument(xml, template);
+			
+			
+			// save result
+			File f = new File("trace.html");
+			Writer output = new BufferedWriter(new FileWriter(f));
+			try {
+				output.write(traceDoc);
+			} finally {
+				output.close();
+			}
+			
+			System.out.println(traceDoc);
+		}
+	}
+	
+	public static String convertStreamToString(InputStream is)
+			throws IOException {
+		/*
+		 * To convert the InputStream to String we use the
+		 * BufferedReader.readLine() method. We iterate until the BufferedReader
+		 * return null which means there's no more data to read. Each line will
+		 * appended to a StringBuilder and returned as String.
+		 */
+		if (is != null) {
+			StringBuilder sb = new StringBuilder();
+			String line;
+
+			try {
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(is, "UTF-8"));
+				while ((line = reader.readLine()) != null) {
+					sb.append(line).append("\n");
+				}
+			} finally {
+				is.close();
+			}
+			return sb.toString();
+		} else {
+			return "";
 		}
 	}
 }

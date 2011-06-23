@@ -1,6 +1,5 @@
 package ru.imobilco.xalan;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,9 +7,7 @@ import javax.xml.transform.SourceLocator;
 import javax.xml.transform.TransformerException;
 
 import org.apache.xalan.templates.Constants;
-import org.apache.xalan.templates.ElemTemplate;
 import org.apache.xalan.templates.ElemTemplateElement;
-import org.apache.xalan.templates.ElemTextLiteral;
 import org.apache.xalan.trace.EndSelectionEvent;
 import org.apache.xalan.trace.ExtensionEvent;
 import org.apache.xalan.trace.GenerateEvent;
@@ -25,8 +22,6 @@ import ru.imobilco.RootTag;
 import ru.imobilco.Tag;
 
 public class JSONTraceListener implements TraceListenerEx3 {
-	
-	private PrintStream out = System.err;
     private List<String> allowedXslTags = new ArrayList<String>();
     private int skipTag = 0;
     
@@ -35,6 +30,7 @@ public class JSONTraceListener implements TraceListenerEx3 {
     
     protected RootTag root;
     protected Tag cur_tag;
+	private boolean collectGenerated;
 	
 	public JSONTraceListener() {
 		root = new RootTag("root");
@@ -56,8 +52,13 @@ public class JSONTraceListener implements TraceListenerEx3 {
         if (node == null)
         	return "";
         
+        
         switch (node.getNodeType()) {
             case Node.DOCUMENT_NODE:
+            	if (makeName(node).equals("xsl:stylesheet"))
+					// a bit weird structure of XSL document
+            		return "/xsl:stylesheet[1]";
+            	
                 return "/";
             case Node.ELEMENT_NODE:
                 pre = getPath(node.getParentNode());
@@ -100,54 +101,6 @@ public class JSONTraceListener implements TraceListenerEx3 {
          
          return i;
      }
-	
-	/**
-	   * Print information about a TracerEvent.
-	   *
-	   * @param ev the trace event.
-	   */
-	public void _trace(TracerEvent ev) {
-//		out.print("xsl: " + makeName(ev.m_styleNode) + " (" + ev.m_styleNode.getXSLToken() + "), ");
-//		out.println("xml: " + ev.m_sourceNode.getLocalName() + "(" + ev.m_sourceNode.getNodeType() + ")");
-		
-
-		switch (ev.m_styleNode.getXSLToken()) {
-		case Constants.ELEMNAME_TEXTLITERALRESULT:
-				out.print(ev.m_styleNode.getSystemId() + " Line #"
-						+ ev.m_styleNode.getLineNumber() + ", " + "Column #"
-						+ ev.m_styleNode.getColumnNumber() + " -- "
-						+ ev.m_styleNode.getNodeName() + ": ");
-
-				ElemTextLiteral etl = (ElemTextLiteral) ev.m_styleNode;
-				String chars = new String(etl.getChars(), 0,
-						etl.getChars().length);
-
-				out.println("    " + chars.trim());
-			break;
-		case Constants.ELEMNAME_TEMPLATE:
-			ElemTemplate et = (ElemTemplate) ev.m_styleNode;
-			
-			out.print(et.getSystemId() + " Line #" + et.getLineNumber()
-					+ ", " + "Column #" + et.getColumnNumber() + ": "
-					+ et.getNodeName() + " ");
-			
-			if (null != et.getMatch()) {
-				out.print("match='" + et.getMatch().getPatternString() + "' ");
-			}
-			
-			if (null != et.getName()) {
-				out.print("name='" + et.getName() + "' ");
-			}
-			
-			out.println();
-			break;
-		default:
-			out.println(ev.m_styleNode.getSystemId() + " Line #"
-					+ ev.m_styleNode.getLineNumber() + ", " + "Column #"
-					+ ev.m_styleNode.getColumnNumber() + ": "
-					+ ev.m_styleNode.getNodeName());
-		}
-	}
 	
 	/**
      * Creates element's display name. It handles xsl:element properly, 
@@ -211,13 +164,6 @@ public class JSONTraceListener implements TraceListenerEx3 {
 			tag.setType(getNodeType(style));
 			cur_tag.addChild(tag);
 			
-//			// TODO get correct source reference
-//			if (style.getSystemId() == null) {
-//				_trace(ev);
-//			}
-			
-			
-			
 			tag.setSourceReference("xsl", style.getSystemId(), getPath(style), style.getLineNumber());
 			if (source.getNodeType() == Node.ELEMENT_NODE) {
 				String src = "";
@@ -230,21 +176,15 @@ public class JSONTraceListener implements TraceListenerEx3 {
 				if (locator != null)
 					src = locator.getSystemId();
 				
-//				out.println(source.toString() + ", " + ev.m_processor.getBaseURLOfSource());
-				
 				tag.setContextReference(src, getPath(source), -1);
 			}
 			
             cur_tag = tag;
+            
+            if (style.getXSLToken() == Constants.ELEMNAME_COPY_OF) {
+            	collectGenerated = true;
+            }
 		}
-		
-//		out.print("OPEN ");
-//		_trace(ev);
-		
-//		if (!isLRE(style)) {
-//			out.print("OPEN ");
-//			_trace(ev);
-//		}
 	}
 
 	@Override
@@ -255,51 +195,52 @@ public class JSONTraceListener implements TraceListenerEx3 {
 		} else if (skipTag == 0 && isAllowedElement(style)) {
 			cur_tag.setEndTime(System.currentTimeMillis());
 			cur_tag = cur_tag.getParent();
+			
+			if (style.getXSLToken() == Constants.ELEMNAME_COPY_OF) {
+            	collectGenerated = false;
+            }
     	}
-		
-//		if (!isLRE(ev.m_styleNode)) {
-//			out.print("CLOSE ");
-//			_trace(ev);
-//		}
-	}
-	
-	@Override
-	public void selected(SelectionEvent ev) throws TransformerException {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void selectEnd(EndSelectionEvent ev) throws TransformerException {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void generated(GenerateEvent ev) {
-//		switch (ev.m_eventtype) {
-//			case SerializerTrace.EVENTTYPE_STARTDOCUMENT:
-////				cur_tag = root;
-//		    	root.setStartTime(System.currentTimeMillis());
-//				break;
-//			case SerializerTrace.EVENTTYPE_ENDDOCUMENT:
-//				root.setEndTime(System.currentTimeMillis());
-//		    	out.println(root.toString());
-//		    	break;
-//	
-//			default:
-//				break;
-//		}
+		if (collectGenerated) {
+			switch (ev.m_eventtype) {
+				case SerializerTrace.EVENTTYPE_STARTELEMENT:
+					Tag tag = new Tag(ev.m_name);
+					tag.setStartTime(System.currentTimeMillis());
+					tag.setType(TYPE_LRE);
+					cur_tag.addChild(tag);
+					cur_tag = tag;
+					break;
+				case SerializerTrace.EVENTTYPE_ENDELEMENT:
+					cur_tag.setEndTime(System.currentTimeMillis());
+					cur_tag = cur_tag.getParent();
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	
+	
+	@Override
+	public void selected(SelectionEvent ev) throws TransformerException {
+		
+	}
+
+	@Override
+	public void selectEnd(EndSelectionEvent ev) throws TransformerException {
+
 	}
 
 	@Override
 	public void extension(ExtensionEvent ee) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void extensionEnd(ExtensionEvent ee) {
-		// TODO Auto-generated method stub
 
 	}
 	

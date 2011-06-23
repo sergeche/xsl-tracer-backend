@@ -1,4 +1,4 @@
-package ru.imobilco;
+package ru.imobilco.saxon;
 
 import java.io.PrintStream;
 import java.text.CharacterIterator;
@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.w3c.dom.Node;
+
+import ru.imobilco.RootTag;
+import ru.imobilco.Tag;
 
 import com.icl.saxon.Context;
 import com.icl.saxon.NodeHandler;

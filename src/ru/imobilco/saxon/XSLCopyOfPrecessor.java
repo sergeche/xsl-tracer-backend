@@ -1,8 +1,10 @@
-package ru.imobilco;
+package ru.imobilco.saxon;
 
 import java.io.StringWriter;
 
 import javax.xml.transform.TransformerException;
+
+import ru.imobilco.Tag;
 
 import com.icl.saxon.Binding;
 import com.icl.saxon.Context;

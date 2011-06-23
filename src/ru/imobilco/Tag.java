@@ -3,6 +3,8 @@ package ru.imobilco;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.imobilco.saxon.JSONTraceListener;
+
 public class Tag {
 	private String type = "";
 	private String name;
@@ -135,7 +137,7 @@ public class Tag {
 		String result = "{"
 			+ "\"name\":\"" + getName() + "\","
 			+ "\"type\":\"" + getType() + "\","
-			+ "\"time\":" + (endTime - startTime) + ",";
+			+ "\"time\":" + Math.max(endTime - startTime, 0) + ",";
 		
 		result += collectionsToString();
 		
