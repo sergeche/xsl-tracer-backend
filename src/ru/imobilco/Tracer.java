@@ -3,17 +3,14 @@ package ru.imobilco;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
 
-import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.xalan.transformer.TransformerImpl;
@@ -35,7 +32,7 @@ public class Tracer {
 		
 		// if outFile is null, output data to console
 		String outFile = null;
-		boolean useSaxon = false; // TODO implement
+//		boolean useSaxon = false; // TODO implement
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-xml")) {
@@ -56,9 +53,10 @@ public class Tracer {
 				} else {
 					printInvalidOption("-out");
 				}
-			} else if (args[i].equalsIgnoreCase("-saxon")) {
-				useSaxon = true;
-			}
+			} 
+//			else if (args[i].equalsIgnoreCase("-saxon")) {
+//				useSaxon = true;
+//			}
 		}
 		
 		if (xmlFile == null) {
