@@ -160,7 +160,6 @@ public class JSONTraceListener implements TraceListenerEx3 {
 			skipTag++;
 		} else if (skipTag == 0 && isAllowedElement(style)) {
 			Tag tag = new Tag(makeName(style));
-			tag.setStartTime(System.currentTimeMillis());
 			tag.setType(getNodeType(style));
 			cur_tag.addChild(tag);
 			
@@ -184,6 +183,8 @@ public class JSONTraceListener implements TraceListenerEx3 {
             if (style.getXSLToken() == Constants.ELEMNAME_COPY_OF) {
             	collectGenerated = true;
             }
+            
+            tag.setStartTime(System.currentTimeMillis());
 		}
 	}
 
@@ -208,10 +209,10 @@ public class JSONTraceListener implements TraceListenerEx3 {
 			switch (ev.m_eventtype) {
 				case SerializerTrace.EVENTTYPE_STARTELEMENT:
 					Tag tag = new Tag(ev.m_name);
-					tag.setStartTime(System.currentTimeMillis());
 					tag.setType(TYPE_LRE);
 					cur_tag.addChild(tag);
 					cur_tag = tag;
+					tag.setStartTime(System.currentTimeMillis());
 					break;
 				case SerializerTrace.EVENTTYPE_ENDELEMENT:
 					cur_tag.setEndTime(System.currentTimeMillis());

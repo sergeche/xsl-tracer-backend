@@ -2,6 +2,7 @@ package ru.imobilco;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,8 +10,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
 
+import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.xalan.transformer.TransformerImpl;
@@ -29,6 +32,7 @@ public class Tracer {
 	public static void main(String[] args) throws IOException {
 		String xmlFile = null;
 		String xslFile = null;
+		boolean measureTime = false;
 		
 		// if outFile is null, output data to console
 		String outFile = null;
@@ -53,7 +57,9 @@ public class Tracer {
 				} else {
 					printInvalidOption("-out");
 				}
-			} 
+			} else if (args[i].equalsIgnoreCase("-time")) {
+				measureTime = true;
+			}
 //			else if (args[i].equalsIgnoreCase("-saxon")) {
 //				useSaxon = true;
 //			}
@@ -67,13 +73,19 @@ public class Tracer {
 			exit("No input XSL specified");
 		}
 		
+		long startTime = System.currentTimeMillis();
+		
 		TransformerFactory tfactory = TransformerFactory.newInstance();
 		tfactory.setErrorListener(new DefaultErrorHandler(false));
 		String traceDoc = null;
 		
 		try {
 			Transformer transformer = tfactory.newTransformer(new StreamSource(xslFile));
-			if (transformer instanceof TransformerImpl) {
+			if (measureTime) {
+				ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
+				Result result = new StreamResult(resultStream);
+				transformer.transform(new StreamSource(xmlFile), result);
+			} else if (transformer instanceof TransformerImpl) {
 				
 				// init XSL tracer
 				XSLTracer tracer = new XSLTracer((TransformerImpl) transformer);
@@ -88,6 +100,11 @@ public class Tracer {
 		} catch (Exception e) {
 			exit(e.getMessage());
 		}
+		
+		long endTime = System.currentTimeMillis();
+		
+		if (measureTime)
+			System.out.println("Time: " + (endTime - startTime) + " ms");
 		
 		if (traceDoc != null) {
 			// output result
